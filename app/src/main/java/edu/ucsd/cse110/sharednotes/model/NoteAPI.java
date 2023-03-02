@@ -65,14 +65,19 @@ public class NoteAPI {
         }
     }
 
-    public void putNote(Note note){
-        String url = "https://sharednotes.goto.ucsd.edu/notes/" + note.title;
+    public void putNote(Note note) {
+        String encodedTitle = note.title.replace(" ", "%20");
+        String url = "https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle;
 
         // Build the request body as JSON.
         String json = note.toJSON();
 
+        MediaType JSON
+                = MediaType.get("application/json; charset=utf-8");
+
+
         // Build the request with the JSON body and appropriate headers.
-        RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+        RequestBody body = RequestBody.create(json, JSON);
         Request request = new Request.Builder()
                 .url(url)
                 .put(body)
