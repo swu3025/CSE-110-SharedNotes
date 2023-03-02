@@ -71,4 +71,5 @@ public class Note {
     public String toJSON() {
         return new Gson().toJson(this);
     }
+
 }

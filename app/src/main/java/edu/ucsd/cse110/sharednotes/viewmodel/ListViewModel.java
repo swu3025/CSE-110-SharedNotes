@@ -12,6 +12,7 @@ import edu.ucsd.cse110.sharednotes.model.Note;
 import edu.ucsd.cse110.sharednotes.model.NoteDatabase;
 import edu.ucsd.cse110.sharednotes.model.NoteRepository;
 
+
 public class ListViewModel extends AndroidViewModel {
     private LiveData<List<Note>> notes;
     private final NoteRepository repo;

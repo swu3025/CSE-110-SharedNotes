@@ -9,10 +9,12 @@ import androidx.lifecycle.LiveData;
 import edu.ucsd.cse110.sharednotes.model.Note;
 import edu.ucsd.cse110.sharednotes.model.NoteDatabase;
 import edu.ucsd.cse110.sharednotes.model.NoteRepository;
+import edu.ucsd.cse110.sharednotes.model.NoteAPI;
 
 public class NoteViewModel extends AndroidViewModel {
     private LiveData<Note> note;
     private final NoteRepository repo;
+
 
     public NoteViewModel(@NonNull Application application) {
         super(application);
@@ -30,6 +32,7 @@ public class NoteViewModel extends AndroidViewModel {
         if (note == null) {
             note = repo.getLocal(title);
         }
+        note = repo.getSynced(title);
         return note;
     }
 
