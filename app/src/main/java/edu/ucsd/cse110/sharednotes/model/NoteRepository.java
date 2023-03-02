@@ -107,7 +107,7 @@ public class NoteRepository {
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
             if (latestNote.updatedAt > remoteNote.getValue().updatedAt) {
-                upsertLocal(latestNote);
+                upsertSynced(latestNote);
             }
             remoteNote.postValue(latestNote);
         }, 0, 3, TimeUnit.SECONDS);
@@ -119,6 +119,5 @@ public class NoteRepository {
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
         api.putNote(note);
-        throw new UnsupportedOperationException("Not implemented yet");
     }
 }
