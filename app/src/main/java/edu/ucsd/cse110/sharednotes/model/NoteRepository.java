@@ -96,51 +96,24 @@ public class NoteRepository {
     // ==============
 
     public LiveData<Note> getRemote(String title) {
-        // TODO: Implement getRemote!
-        // TODO: Set up polling background thread (MutableLiveData?)
-        // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
-
-        // Cancel any previous poller if it exists.
         if (this.poller != null && !this.poller.isCancelled()) {
             poller.cancel(true);
         }
-
-        // Set up a background thread that will poll the server every 3 seconds.
-
-        // You may (but don't have to) want to cache the LiveData's for each title, so that
-        // you don't create a new polling thread every time you call getRemote with the same title.
-        // You don't need to worry about killing background threads.
         MutableLiveData<Note> remoteNote = new MutableLiveData<>();
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
             if (remoteNote.getValue() == null || latestNote.version > remoteNote.getValue().version) {
-                upsertSynced(latestNote);
+                upsertRemote(latestNote);
             }
-            remoteNote.postValue(latestNote);
         }, 0, 3, TimeUnit.SECONDS);
 
         return remoteNote;
-
-
     }
-//    @MainThread
-//    public LiveData<Note> getRemote(String title) {
-//        MutableLiveData<Note> remoteNote = new MutableLiveData<>();
-//
-//        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-//        executor.scheduleAtFixedRate(() -> {
-//            Note latestNote = NoteAPI.provide().getNote(title);
-//            remoteNote.postValue(latestNote);
-//        }, 0, 3, TimeUnit.SECONDS);
-//
-//        return remoteNote;
-//    }
 
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
-        note.version = note.version + 1;
         api.putNoteAsync(note);
     }
 }
