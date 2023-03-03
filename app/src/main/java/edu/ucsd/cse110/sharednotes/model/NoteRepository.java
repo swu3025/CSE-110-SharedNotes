@@ -50,7 +50,7 @@ public class NoteRepository {
         Observer<Note> updateFromRemote = theirNote -> {
             var ourNote = note.getValue();
             if (theirNote == null) return; // do nothing
-            if (ourNote == null || ourNote.updatedAt < theirNote.updatedAt) {
+            if (ourNote == null || ourNote.version < theirNote.version) {
                 upsertLocal(theirNote);
             }
         };
@@ -81,7 +81,6 @@ public class NoteRepository {
 
     public void upsertLocal(Note note) {
         note.version = note.version + 1;
-        note.updatedAt = Instant.now().getEpochSecond();
         dao.upsert(note);
     }
 
@@ -107,21 +106,26 @@ public class NoteRepository {
         // You may (but don't have to) want to cache the LiveData's for each title, so that
         // you don't create a new polling thread every time you call getRemote with the same title.
         // You don't need to worry about killing background threads.
+        if (this.poller != null && !this.poller.isCancelled()) {
+            poller.cancel(true);
+        }
         MutableLiveData<Note> remoteNote = new MutableLiveData<>();
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
             if (remoteNote.getValue() == null || latestNote.version > remoteNote.getValue().version) {
-                upsertSynced(latestNote);
+                //upsertSynced(latestNote);
+                upsertRemote(latestNote);
             }
             remoteNote.postValue(latestNote);
         }, 0, 3, TimeUnit.SECONDS);
 
         return remoteNote;
 
-
     }
+
+
 //    @MainThread
 //    public LiveData<Note> getRemote(String title) {
 //        MutableLiveData<Note> remoteNote = new MutableLiveData<>();
