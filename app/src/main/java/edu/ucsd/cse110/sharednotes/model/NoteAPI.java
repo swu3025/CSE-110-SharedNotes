@@ -15,8 +15,12 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+
 import edu.ucsd.cse110.sharednotes.model.Note;
 
 import okhttp3.MediaType;
@@ -46,7 +50,7 @@ public class NoteAPI {
         }
         return instance;
     }
-
+    @AnyThread
     public Note getNote(String title){
         String encodedTitle = title.replace(" ", "%20");
 
@@ -65,35 +69,40 @@ public class NoteAPI {
         }
     }
 
+    @AnyThread
     public void putNote(Note note) {
-        String encodedTitle = note.title.replace(" ", "%20");
-        String url = "https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle;
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.execute(() -> {
+            String encodedTitle = note.title.replace(" ", "%20");
+            String url = "https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle;
 
-        // Build the request body as JSON.
-        String json = note.toJSON();
+            // Build the request body as JSON.
+            String json = note.toJSON();
 
-        MediaType JSON
-                = MediaType.get("application/json; charset=utf-8");
+            MediaType JSON
+                    = MediaType.get("application/json; charset=utf-8");
 
 
-        // Build the request with the JSON body and appropriate headers.
-        RequestBody body = RequestBody.create(json, JSON);
-        Request request = new Request.Builder()
-                .url(url)
-                .put(body)
-                .build();
+            // Build the request with the JSON body and appropriate headers.
+            RequestBody body = RequestBody.create(json, JSON);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .put(body)
+                    .build();
+            Log.d("PUT", body.toString());
 
-        // Use OkHttp3 to send the request and get the response.
-        try {
-            Response response = client.newCall(request).execute();
+            // Use OkHttp3 to send the request and get the response.
+            try {
+                Response response = client.newCall(request).execute();
 
-            // Handle any errors that occur during the PUT.
-            if (!response.isSuccessful()) {
-                Log.e(TAG, "Failed to update remote note: " + response.code() + " " + response.message());
+                // Handle any errors that occur during the PUT.
+                if (!response.isSuccessful()) {
+                    Log.e(TAG, "Failed to update remote note: " + response.code() + " " + response.message());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
 

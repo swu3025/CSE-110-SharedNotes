@@ -108,7 +108,7 @@ public class NoteRepository {
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
             if (latestNote.updatedAt > remoteNote.getValue().updatedAt) {
-                upsertSynced(latestNote);
+                upsertRemote(latestNote);
             }
             remoteNote.postValue(latestNote);
         }, 0, 3, TimeUnit.SECONDS);
