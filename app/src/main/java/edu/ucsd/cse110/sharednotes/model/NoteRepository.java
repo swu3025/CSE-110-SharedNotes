@@ -2,6 +2,7 @@ package edu.ucsd.cse110.sharednotes.model;
 
 import android.util.Log;
 
+import androidx.annotation.MainThread;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -90,7 +91,8 @@ public class NoteRepository {
 
     // Remote Methods
     // ==============
-    public LiveData<Note> getRemote(String title) {
+
+    /*public LiveData<Note> getRemote(String title) {
         // TODO: Implement getRemote!
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
@@ -107,7 +109,6 @@ public class NoteRepository {
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
             if (remoteNote.getValue() == null || latestNote.updatedAt > remoteNote.getValue().updatedAt) {
-                Log.d("POLL", latestNote.content);
                 upsertSynced(latestNote);
             }
             remoteNote.postValue(latestNote);
@@ -116,6 +117,18 @@ public class NoteRepository {
         return remoteNote;
 
 
+    }*/
+    @MainThread
+    public LiveData<Note> getRemote(String title) {
+        MutableLiveData<Note> remoteNote = new MutableLiveData<>();
+
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(() -> {
+            Note latestNote = NoteAPI.provide().getNote(title);
+            remoteNote.postValue(latestNote);
+        }, 0, 3, TimeUnit.SECONDS);
+
+        return remoteNote;
     }
 
     public void upsertRemote(Note note) {

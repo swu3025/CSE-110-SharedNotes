@@ -48,7 +48,7 @@ public class NoteAPI {
         return instance;
     }
 
-    @WorkerThread
+   /* @AnyThread
     public Note getNote(String title){
         String encodedTitle = title.replace(" ", "%20");
 
@@ -65,7 +65,25 @@ public class NoteAPI {
             e.printStackTrace();
             return null;
         }
-    }
+    }*/
+   @WorkerThread
+   public Note getNote(String title) {
+       String encodedTitle = title.replace(" ", "%20");
+
+       var request = new Request.Builder()
+               .url("https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle)
+               .method("GET", null)
+               .build();
+
+       try (var response = client.newCall(request).execute()) {
+           assert response.body() != null;
+           var body = response.body().string();
+           return Note.fromJSON(body);
+       } catch (Exception e) {
+           e.printStackTrace();
+           return null;
+       }
+   }
 
     public void putNote(Note note) {
         String encodedTitle = note.title.replace(" ", "%20");
@@ -138,7 +156,7 @@ public class NoteAPI {
         return future;
     }
 
-    @WorkerThread
+    @AnyThread
     public void putNoteAsync(Note note) {
         // Define a new executor with a single thread to handle the PUT request.
         Executor executor = Executors.newSingleThreadExecutor();
