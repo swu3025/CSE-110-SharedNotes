@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import edu.ucsd.cse110.sharednotes.model.Note;
@@ -47,6 +48,7 @@ public class NoteAPI {
         return instance;
     }
 
+    @AnyThread
     public Note getNote(String title){
         String encodedTitle = title.replace(" ", "%20");
 
@@ -67,13 +69,12 @@ public class NoteAPI {
 
     public void putNote(Note note) {
         String encodedTitle = note.title.replace(" ", "%20");
-        String url = "https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle;
+        String url = "https://sharednotes.goto.ucsd.edu/notes/gl";// + encodedTitle;
 
         // Build the request body as JSON.
         String json = note.toJSON();
 
-        MediaType JSON
-                = MediaType.get("application/json; charset=utf-8");
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
 
         // Build the request with the JSON body and appropriate headers.
@@ -86,16 +87,18 @@ public class NoteAPI {
         // Use OkHttp3 to send the request and get the response.
         try {
             Response response = client.newCall(request).execute();
+            System.out.println("goling");
 
             // Handle any errors that occur during the PUT.
             if (!response.isSuccessful()) {
+                System.out.println("boling");
+
                 Log.e(TAG, "Failed to update remote note: " + response.code() + " " + response.message());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     /**
      * An example of sending a GET request to the server.
@@ -134,4 +137,43 @@ public class NoteAPI {
         // We can use future.get(1, SECONDS) to wait for the result.
         return future;
     }
+
+    @AnyThread
+    public void putNoteAsync(Note note) {
+        // Define a new executor with a single thread to handle the PUT request.
+        Executor executor = Executors.newSingleThreadExecutor();
+
+        // Submit a new Runnable task to the executor that executes the PUT request.
+        executor.execute(() -> {
+            // Copy the existing putNote implementation here.
+            String encodedTitle = note.title.replace(" ", "%20");
+            String url = "https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle;
+
+            // Build the request body as JSON.
+            String json = note.toJSON();
+
+            // Build the request with the JSON body and appropriate headers.
+            RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+            Request request = new Request.Builder()
+                    .url(url)
+                    .put(body)
+                    .build();
+
+            // Use OkHttp3 to send the request and get the response.
+            try {
+                Response response = client.newCall(request).execute();
+                System.out.println("goling");
+
+                // Handle any errors that occur during the PUT.
+                if (!response.isSuccessful()) {
+                    System.out.println("boling");
+
+                    Log.e(TAG, "Failed to update remote note: " + response.code() + " " + response.message());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
 }

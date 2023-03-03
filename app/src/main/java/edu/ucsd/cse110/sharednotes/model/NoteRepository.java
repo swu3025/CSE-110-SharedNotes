@@ -107,7 +107,7 @@ public class NoteRepository {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
-            if (latestNote.updatedAt > remoteNote.getValue().updatedAt) {
+            if (remoteNote.getValue() == null || latestNote.updatedAt > remoteNote.getValue().updatedAt) {
                 upsertSynced(latestNote);
             }
             remoteNote.postValue(latestNote);
@@ -115,10 +115,12 @@ public class NoteRepository {
 
         return remoteNote;
 
+
     }
 
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
-        api.putNote(note);
+        note.updatedAt = Instant.now().getEpochSecond();
+        api.putNoteAsync(note);
     }
 }
