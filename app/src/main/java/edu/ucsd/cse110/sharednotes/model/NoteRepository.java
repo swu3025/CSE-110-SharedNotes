@@ -92,7 +92,7 @@ public class NoteRepository {
     // Remote Methods
     // ==============
 
-    /*public LiveData<Note> getRemote(String title) {
+    public LiveData<Note> getRemote(String title) {
         // TODO: Implement getRemote!
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
@@ -117,19 +117,19 @@ public class NoteRepository {
         return remoteNote;
 
 
-    }*/
-    @MainThread
-    public LiveData<Note> getRemote(String title) {
-        MutableLiveData<Note> remoteNote = new MutableLiveData<>();
-
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> {
-            Note latestNote = NoteAPI.provide().getNote(title);
-            remoteNote.postValue(latestNote);
-        }, 0, 3, TimeUnit.SECONDS);
-
-        return remoteNote;
     }
+//    @MainThread
+//    public LiveData<Note> getRemote(String title) {
+//        MutableLiveData<Note> remoteNote = new MutableLiveData<>();
+//
+//        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+//        executor.scheduleAtFixedRate(() -> {
+//            Note latestNote = NoteAPI.provide().getNote(title);
+//            remoteNote.postValue(latestNote);
+//        }, 0, 3, TimeUnit.SECONDS);
+//
+//        return remoteNote;
+//    }
 
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
