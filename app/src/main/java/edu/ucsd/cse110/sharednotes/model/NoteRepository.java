@@ -90,7 +90,6 @@ public class NoteRepository {
 
     // Remote Methods
     // ==============
-
     public LiveData<Note> getRemote(String title) {
         // TODO: Implement getRemote!
         // TODO: Set up polling background thread (MutableLiveData?)
@@ -108,6 +107,7 @@ public class NoteRepository {
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
             if (remoteNote.getValue() == null || latestNote.updatedAt > remoteNote.getValue().updatedAt) {
+                Log.d("POLL", latestNote.content);
                 upsertSynced(latestNote);
             }
             remoteNote.postValue(latestNote);

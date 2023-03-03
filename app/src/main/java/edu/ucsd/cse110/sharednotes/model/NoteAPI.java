@@ -48,7 +48,7 @@ public class NoteAPI {
         return instance;
     }
 
-    @AnyThread
+    @WorkerThread
     public Note getNote(String title){
         String encodedTitle = title.replace(" ", "%20");
 
@@ -138,7 +138,7 @@ public class NoteAPI {
         return future;
     }
 
-    @AnyThread
+    @WorkerThread
     public void putNoteAsync(Note note) {
         // Define a new executor with a single thread to handle the PUT request.
         Executor executor = Executors.newSingleThreadExecutor();
