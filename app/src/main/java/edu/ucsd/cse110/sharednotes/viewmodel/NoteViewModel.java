@@ -38,7 +38,7 @@ public class NoteViewModel extends AndroidViewModel {
 
     public void save(Note note) {
         // TODO: try to upload the note to the server.
-        repo.upsertSynced(note);
+        repo.upsertRemote(note);
 
     }
 }

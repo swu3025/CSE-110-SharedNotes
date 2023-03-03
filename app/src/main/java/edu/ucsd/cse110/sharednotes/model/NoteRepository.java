@@ -9,17 +9,20 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import static android.content.ContentValues.TAG;
 
+import java.time.Instant;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import edu.ucsd.cse110.sharednotes.model.NoteAPI;
 
 public class NoteRepository {
     private final NoteDao dao;
+    private ScheduledFuture<?> poller; // what could this be for... hmm?
     private NoteAPI api;
 
     public NoteRepository(NoteDao dao) {
@@ -77,6 +80,7 @@ public class NoteRepository {
     }
 
     public void upsertLocal(Note note) {
+        note.version = note.version + 1;
         note.updatedAt = Instant.now().getEpochSecond();
         dao.upsert(note);
     }
@@ -92,7 +96,7 @@ public class NoteRepository {
     // Remote Methods
     // ==============
 
-    /*public LiveData<Note> getRemote(String title) {
+    public LiveData<Note> getRemote(String title) {
         // TODO: Implement getRemote!
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
@@ -108,7 +112,7 @@ public class NoteRepository {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> {
             Note latestNote = NoteAPI.provide().getNote(title);
-            if (remoteNote.getValue() == null || latestNote.updatedAt > remoteNote.getValue().updatedAt) {
+            if (remoteNote.getValue() == null || latestNote.version > remoteNote.getValue().version) {
                 upsertSynced(latestNote);
             }
             remoteNote.postValue(latestNote);
@@ -117,23 +121,23 @@ public class NoteRepository {
         return remoteNote;
 
 
-    }*/
-    @MainThread
-    public LiveData<Note> getRemote(String title) {
-        MutableLiveData<Note> remoteNote = new MutableLiveData<>();
-
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> {
-            Note latestNote = NoteAPI.provide().getNote(title);
-            remoteNote.postValue(latestNote);
-        }, 0, 3, TimeUnit.SECONDS);
-
-        return remoteNote;
     }
+//    @MainThread
+//    public LiveData<Note> getRemote(String title) {
+//        MutableLiveData<Note> remoteNote = new MutableLiveData<>();
+//
+//        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+//        executor.scheduleAtFixedRate(() -> {
+//            Note latestNote = NoteAPI.provide().getNote(title);
+//            remoteNote.postValue(latestNote);
+//        }, 0, 3, TimeUnit.SECONDS);
+//
+//        return remoteNote;
+//    }
 
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
-        note.updatedAt = Instant.now().getEpochSecond();
+        note.version = note.version + 1;
         api.putNoteAsync(note);
     }
 }
