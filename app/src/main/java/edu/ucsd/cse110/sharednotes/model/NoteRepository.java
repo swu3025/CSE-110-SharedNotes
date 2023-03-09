@@ -147,7 +147,6 @@ public class NoteRepository {
 
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
-        note.version = note.version + 1;
         api.putNoteAsync(note);
     }
 }

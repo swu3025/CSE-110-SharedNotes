@@ -48,8 +48,26 @@ public class NoteAPI {
         return instance;
     }
 
-   /* @AnyThread
-    public Note getNote(String title){
+    /* @AnyThread
+     public Note getNote(String title){
+         String encodedTitle = title.replace(" ", "%20");
+
+         var request = new Request.Builder()
+                 .url("https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle)
+                 .method("GET", null)
+                 .build();
+
+         try (var response = client.newCall(request).execute()) {
+             assert response.body() != null;
+             var body = response.body().string();
+             return Note.fromJSON(body);
+         } catch (Exception e) {
+             e.printStackTrace();
+             return null;
+         }
+     }*/
+    @WorkerThread
+    public Note getNote(String title) {
         String encodedTitle = title.replace(" ", "%20");
 
         var request = new Request.Builder()
@@ -65,25 +83,7 @@ public class NoteAPI {
             e.printStackTrace();
             return null;
         }
-    }*/
-   @WorkerThread
-   public Note getNote(String title) {
-       String encodedTitle = title.replace(" ", "%20");
-
-       var request = new Request.Builder()
-               .url("https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle)
-               .method("GET", null)
-               .build();
-
-       try (var response = client.newCall(request).execute()) {
-           assert response.body() != null;
-           var body = response.body().string();
-           return Note.fromJSON(body);
-       } catch (Exception e) {
-           e.printStackTrace();
-           return null;
-       }
-   }
+    }
 
     public void putNote(Note note) {
         String encodedTitle = note.title.replace(" ", "%20");
@@ -156,15 +156,61 @@ public class NoteAPI {
         return future;
     }
 
+    //    @AnyThread
+//    public void putNoteAsync(Note note) {
+//        if (note == null) {
+//            return; // or throw an IllegalArgumentException
+//        }
+//        // Define a new executor with a single thread to handle the PUT request.
+//        Executor executor = Executors.newSingleThreadExecutor();
+//
+//        // Submit a new Runnable task to the executor that executes the PUT request.
+//        executor.execute(() -> {
+//            // Copy the existing putNote implementation here.
+//            String encodedTitle = note.title.replace(" ", "%20");
+//            String url = "https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle;
+//
+//            // Build the request body as JSON.
+//            String json = note.toJSON();
+//
+//            // Build the request with the JSON body and appropriate headers.
+//            RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+//            Request request = new Request.Builder()
+//                    .url(url)
+//                    .put(body)
+//                    .build();
+//
+//            // Use OkHttp3 to send the request and get the response.
+//            try {
+//                Response response = client.newCall(request).execute();
+//                System.out.println("goling");
+//
+//                // Handle any errors that occur during the PUT.
+//                if (!response.isSuccessful()) {
+//                    System.out.println("boling");
+//
+//                    Log.e(TAG, "Failed to update remote note: " + response.code() + " " + response.message());
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//    }
     @AnyThread
     public void putNoteAsync(Note note) {
+        if (note == null) {
+            return; // or throw an IllegalArgumentException
+        }
+
         // Define a new executor with a single thread to handle the PUT request.
         Executor executor = Executors.newSingleThreadExecutor();
 
         // Submit a new Runnable task to the executor that executes the PUT request.
         executor.execute(() -> {
-            // Copy the existing putNote implementation here.
-            String encodedTitle = note.title.replace(" ", "%20");
+            String encodedTitle = "";
+            if (note.title != null) {
+                encodedTitle = note.title.replace(" ", "%20");
+            }
             String url = "https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle;
 
             // Build the request body as JSON.
@@ -193,5 +239,7 @@ public class NoteAPI {
             }
         });
     }
+
+
 
 }
